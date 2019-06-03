@@ -3,32 +3,18 @@
  * 2019 - present
  */
 var webpack = require("webpack");
-var MemoryFileSystem = require("memory-fs");
-var memoryFs = new MemoryFileSystem();
 var fs = require("fs");
-//var prettyBytes = require("pretty-bytes");
+var prettyBytes = require("pretty-bytes");
 const path = require("path");
 const rimraf = require("rimraf");
 import { bundleAssets } from "./bundle-assets";
-const exec = require("child_process").exec;
+const spawn = require("cross-spawn");
 
-/*
-This needs to:
-
-1. bundle up the /build folder into a single script
-2. load the config
-3. have a script that we give webpack as the root to build that will export a 'handler' function
-4. return the final script from the "build" function
-
-*/
+const buildDirectory = ".dog";
 
 const webpackConfig = {
-  entry: { worker: path.resolve(__dirname, "scripts/src/index.js") },
+  entry: { worker: path.resolve(`${buildDirectory}/entry.js`) },
   target: "webworker",
-  watch: true,
-  watchOptions: {
-    ignored: /node_modules/
-  },
   module: {
     rules: [
       {
@@ -60,63 +46,51 @@ const webpackConfig = {
 };
 
 export const build = async configFile => {
-  // run npm run build
-  // exec(`npm run build`)
+  console.log();
+  console.log("Running create-react-apps build process. i.e. npm run build");
+  console.log();
+
+  spawn.sync("npm", ["run", "build"], {
+    stdio: "inherit",
+    env: { ...process.env, GENERATE_SOURCEMAP: false } // source maps add undeeded weight at the edge -- if desired should serve from s3 or similar
+  });
+
+  console.log("Building for Application Delivery Network...");
 
   const compiler = webpack(webpackConfig);
-  compiler.inputFileSystem = fs;
-  compiler.resolvers.normal.fileSystem = memoryFs;
-  compiler.outputFileSystem = memoryFs;
 
-  rimraf.sync(path.resolve(__dirname, "tmp-dog-build"));
-  fs.mkdirSync(path.resolve(__dirname, "tmp-dog-build"));
+  rimraf.sync(path.resolve(buildDirectory));
+  fs.mkdirSync(path.resolve(buildDirectory));
 
-  configFile = configFile || "./dog-app-config.js";
-  if (configFile !== undefined) {
-    try {
-      config = fs.readFileSync(configFile, "utf8");
-    } catch (e) {}
-  }
+  const assets = bundleAssets("./build");
 
-  fs.writeFileSync(
-    path.resolve(__dirname, "tmp-dog-build/entry.js"),
-    `var config = require("./dog-app-config");
-var script = require("@digitaloptgroup/cra-template");
-    
-module.exports = {
-   handler: script.setUp({ ...config, assets })
-};`
-  );
+  fs.writeFileSync(path.resolve(`${buildDirectory}/client-assets.js`), assets);
 
-  let functionFile = `export const functions = {}`;
-  if (functionsFile !== undefined) {
-    try {
-      functionFile = fs.readFileSync(functionsFile, "utf8");
-    } catch (e) {}
-  }
-
-  fs.writeFileSync(
-    path.resolve(__dirname, "tmp-dog-build/functions.js"),
-    functionFile
-  );
-
-  const assets = bundleAssets(buildDir);
-
-  fs.writeFileSync(
-    path.resolve(__dirname, "tmp-dog-build/client-assets.js"),
-    assets
+  fs.copyFileSync(
+    path.resolve(__dirname, "../src/entry.js"),
+    path.resolve(`${buildDirectory}/entry.js`)
   );
 
   const finalScript = await new Promise((res, rej) => {
+    compiler.outputFileSystem = {
+      // send output into the void
+      mkdirp: (path, callback) => {
+        callback();
+      },
+      join: () => {}
+    };
     compiler.run((err, stats) => {
-      // console.log(
-      //   `Final bundle size: ${prettyBytes(
-      //     stats.compilation.assets["worker.js"].size()
-      //   )}`
-      // );
+      console.log();
+      console.log(
+        `Final bundle size: ${prettyBytes(
+          stats.compilation.assets["worker.js"].size()
+        )}`
+      );
       if (err) rej(err);
       const result = stats.compilation.assets["worker.js"].source();
       res(result);
     });
   });
+
+  return finalScript;
 };
