@@ -5,8 +5,8 @@
 import mime from "mime";
 import { perfHead, perfBody, bodyHash } from "@digitaloptgroup/rum";
 
-export function setup(config) {
-  return async function handleRequest(event, context) {
+export const setup = config => {
+  return async (event, context) => {
     const request = event.request;
     const { assets, preCacheManifest } = config;
 
@@ -16,7 +16,7 @@ export function setup(config) {
       params,
       cookies,
       setCookie,
-      cache,
+      prepareCmsCache,
       pathname,
       headers,
       projectId,
@@ -39,13 +39,17 @@ export function setup(config) {
         : assets[assetToServe]
       : "404 - Not Found";
 
-    if (assetToServe === perfBodyScriptUrl) {
+    if (pathname === perfBodyScriptUrl) {
       responseString = perfBody;
     }
 
     if (assetToServe === "/build/index.html") {
       const placeHolder = `<div id="root"></div>`; //"{{__APP_CACHE__}}";
-      const cacheData = await cache(pathname, userId, preCacheManifest);
+      const cacheData = await prepareCmsCache(
+        pathname,
+        userId,
+        preCacheManifest
+      );
 
       const requestContext = {
         rid: headers.get("request-id"),
@@ -63,14 +67,14 @@ export function setup(config) {
             "<head>",
             `<head><script>window.__APP_CONFIG__=${JSON.stringify(
               requestContext
-            )}<script>${perfHead}</script>`
+            )}</script><script>${perfHead}</script>`
           )
           // inject into the body
           .replace(
             placeHolder,
             `${placeHolder}<script>window.__APP_CACHE__=${JSON.stringify(
               cacheData
-            )}<script defer src="${perfBodyScriptUrl}"></script>`
+            )}</script><script defer src="${perfBodyScriptUrl}"></script>`
           ),
         {
           status: assets[assetToServe] ? 200 : 404,
@@ -97,4 +101,4 @@ export function setup(config) {
 
     return res;
   };
-}
+};

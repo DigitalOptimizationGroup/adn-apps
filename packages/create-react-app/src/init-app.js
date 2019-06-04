@@ -11,7 +11,7 @@ export const initApp = () => {
     path.join(userDir, "dog-app-config.json")
   );
 
-  fs.appendFileSync(path.join(userDir, ".gitignore"), "./dog");
+  fs.appendFileSync(path.join(userDir, ".gitignore"), ".dog");
 
   console.log(`
 Initialization complete. Config file create at: 

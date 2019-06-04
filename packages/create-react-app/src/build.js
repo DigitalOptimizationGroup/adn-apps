@@ -15,6 +15,7 @@ const buildDirectory = ".dog";
 const webpackConfig = {
   entry: { worker: path.resolve(`${buildDirectory}/entry.js`) },
   target: "webworker",
+  output: { libraryTarget: "commonjs2" }, // this is super required so we can import from the script when bundling the final output
   module: {
     rules: [
       {
