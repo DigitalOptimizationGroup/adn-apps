@@ -1,0 +1,7 @@
+{
+  "presets": [["@babel/preset-env", { "targets": { "esmodules": true } }]],
+  "plugins": [
+    "@babel/plugin-proposal-export-default-from",
+    "@babel/plugin-proposal-class-properties"
+  ]
+}

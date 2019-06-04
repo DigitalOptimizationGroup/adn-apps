@@ -1,0 +1,8 @@
+{
+  "functionArn": null,
+  "pathToZipFile": null,
+  "region": null,
+  "edgeAwsAccessKeyId": null,
+  "edgeAwssecretAccessKey": null,
+  "accountArnToAssumeForAwsDeployment": null
+}
