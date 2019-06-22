@@ -1,6 +1,6 @@
 {
   "name": "@digitaloptgroup/adn-apps-cra",
-  "version": "0.0.1-dev-preview-05",
+  "version": "0.0.1-dev-preview-12",
   "description": "Deploy an app created by create-react-app to Digital Optimization Group's ADN",
   "main": "lib/index.js",
   "scripts": {
@@ -33,6 +33,7 @@
   },
   "files": [
     "lib",
-    "app-config.json"
+    "app-config.json",
+    "src"
   ]
 }

@@ -1,6 +1,6 @@
 {
   "name": "@digitaloptgroup/adn-apps-lambda-edge-gateway",
-  "version": "0.0.1-dev-preview-03",
+  "version": "0.0.1-dev-preview-06",
   "description": "Call (securely) an AWS Lambda through Digital Optimization Group's ADN",
   "main": "lib/index.js",
   "scripts": {
@@ -36,6 +36,7 @@
   },
   "files": [
     "lib",
-    "app-config.json"
+    "app-config.json",
+    "src"
   ]
 }

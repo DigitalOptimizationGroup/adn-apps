@@ -15,11 +15,13 @@ export const setup = config => {
       requestId,
       params,
       cookies,
-      setCookie,
+      cookie,
+      resolver,
       prepareCmsCache,
       pathname,
       headers,
       projectId,
+      logger,
       gifLoggerUrl,
       color
     } = context;
@@ -60,6 +62,19 @@ export const setup = config => {
         color
       };
 
+      const resHeaders = new Headers({
+        "content-type": "text/html",
+        "cache-control": "no-cache"
+      });
+
+      resHeaders.append(
+        "Set-Cookie",
+        cookie.serialize("_vq", userId, {
+          // httpOnly: true,
+          maxAge: 60 * 60 * 24 * 365 // 1 year
+        })
+      );
+
       return new Response(
         responseString
           // inject into the head
@@ -78,10 +93,7 @@ export const setup = config => {
           ),
         {
           status: assets[assetToServe] ? 200 : 404,
-          headers: new Headers({
-            "content-type": "text/html",
-            "cache-control": "no-cache"
-          })
+          headers: resHeaders
         }
       );
     }

@@ -24,8 +24,10 @@ export const bundleAssets = (buildDir = "./build") => {
 
   walkDir(buildDir, function(fileName) {
     var fileContents;
+    // normalize for windows
+    const normalizedFileName = fileName.split(path.sep).join("/");
 
-    if (fileName.match(/\.(ico|gif|png|jpe?g|svg)$/i) !== null) {
+    if (normalizedFileName.match(/\.(ico|gif|png|jpe?g|svg)$/i) !== null) {
       // if we have an image we convert the buffer to base64 so we can bundle it into our script
       fileContents = fs.readFileSync(fileName).toString("base64");
     } else {
@@ -33,7 +35,7 @@ export const bundleAssets = (buildDir = "./build") => {
     }
 
     assets.push({
-      fileName,
+      fileName: normalizedFileName,
       source: rawLoader(fileContents)
     });
   });

@@ -131,7 +131,7 @@ target lambda:   [${functionArn}]
     };
 
     fs.writeFileSync(
-      path.resolve(`${buildDirectory}/config.js`),
+      path.resolve(`${buildDirectory}/config.json`),
       JSON.stringify(config)
     );
 
